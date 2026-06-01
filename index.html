@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ceramika — pracownia</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #D4622A;
+      --accent-light: #F2D5C4;
+      --accent-dark: #A84A1E;
+      --bg: #FAF8F5;
+      --surface: #FFFFFF;
+      --border: #E8E2DA;
+      --text: #2C2420;
+      --text-muted: #8A7B72;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(44,36,32,0.07);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header .logo { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+    header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; }
+    header span { font-size: 0.85rem; color: var(--text-muted); margin-left: 4px; }
+
+    nav.top-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+    }
+
+    nav.top-nav button {
+      background: none; border: none;
+      padding: 14px 18px;
+      font-size: 0.9rem; color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    nav.top-nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+    nav.top-nav button:hover:not(.active) { color: var(--text); }
+
+    main { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Subtabs */
+    .subtabs {
+      display: flex; gap: 0;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden; width: fit-content;
+      background: var(--surface);
+    }
+
+    .subtabs button {
+      background: none; border: none;
+      padding: 9px 22px;
+      font-size: 0.875rem; color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .subtabs button + button { border-left: 1px solid var(--border); }
+
+    .subtabs button.active { background: var(--accent); color: #fff; font-weight: 500; }
+    .subtabs button:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+    .subtab-content { display: none; }
+    .subtab-content.active { display: block; }
+
+    /* Section header */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+
+    .section-header h2 { font-size: 1.15rem; font-weight: 600; }
+
+    /* Buttons */
+    .btn {
+      background: var(--accent); color: #fff; border: none;
+      padding: 9px 18px; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: var(--accent-dark); }
+
+    .btn-ghost {
+      background: none; color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+    .btn-green {
+      background: #3a9e6e; color: #fff; border: none;
+      padding: 5px 12px; border-radius: 8px;
+      font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: background 0.15s; white-space: nowrap;
+    }
+
+    .btn-green:hover { background: #2e7d56; }
+
+    /* Filters */
+    .filters {
+      display: flex; gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap; align-items: center;
+    }
+
+    .filters select, .filters input[type=text] {
+      padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); font-size: 0.875rem; color: var(--text);
+      cursor: pointer; outline: none;
+    }
+
+    .filters select:focus, .filters input:focus { border-color: var(--accent); }
+    .filters label { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* Summary cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow);
+    }
+
+    .card .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .card .card-value { font-size: 1.4rem; font-weight: 600; color: var(--accent); }
+    .card .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Month groups */
+    .month-group { margin-bottom: 28px; }
+
+    .month-group-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--accent-light);
+      border-radius: var(--radius) var(--radius) 0 0;
+      border: 1px solid var(--border); border-bottom: none;
+    }
+
+    .month-group-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--accent-dark); text-transform: capitalize; }
+    .month-group-header .month-total { font-size: 0.875rem; font-weight: 600; color: var(--accent-dark); }
+
+    /* Tables */
+    .entries-table, .shopping-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--surface); border: 1px solid var(--border);
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .entries-table { border-radius: 0 0 var(--radius) var(--radius); }
+    .shopping-table { border-radius: var(--radius); }
+
+    .entries-table thead th, .shopping-table thead th {
+      text-align: left; padding: 10px 14px;
+      font-size: 0.75rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border); background: #FDFCFB;
+    }
+
+    .entries-table tbody tr, .shopping-table tbody tr {
+      border-bottom: 1px solid var(--border); transition: background 0.1s;
+    }
+
+    .entries-table tbody tr:last-child, .shopping-table tbody tr:last-child { border-bottom: none; }
+    .entries-table tbody tr:hover, .shopping-table tbody tr:hover { background: var(--bg); }
+
+    .entries-table td, .shopping-table td {
+      padding: 11px 14px; font-size: 0.875rem; vertical-align: middle;
+    }
+
+    .entries-table td.amount { font-weight: 600; color: var(--text); white-space: nowrap; }
+
+    .tag {
+      display: inline-block; padding: 2px 9px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 500;
+      background: var(--accent-light); color: var(--accent-dark);
+    }
+
+    .delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 1rem;
+      padding: 2px 6px; border-radius: 6px;
+      transition: color 0.15s, background 0.15s; line-height: 1;
+    }
+
+    .delete-btn:hover { color: #c0392b; background: #fdecea; }
+
+    .edit-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 0.9rem;
+      padding: 2px 6px; border-radius: 6px;
+      transition: color 0.15s, background 0.15s; line-height: 1;
+    }
+
+    .edit-btn:hover { color: var(--accent); background: var(--accent-light); }
+
+    .shopping-table td.note-col { color: var(--text-muted); font-style: italic; font-size: 0.82rem; }
+    .actions-cell { display: flex; gap: 6px; align-items: center; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.73rem; font-weight: 600; white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .status-not_started  { background: #F0EDEA; color: #7A6A60; }
+    .status-thrown       { background: #FFF3E0; color: #B06000; }
+    .status-shaped       { background: #E8F4FD; color: #1565A0; }
+    .status-glazed       { background: #EDE7F6; color: #5E35B1; }
+    .status-ready        { background: #E6F4EA; color: #1E7B3A; }
+
+    /* Works grid / cards */
+    .works-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .work-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+      display: flex; flex-direction: column;
+    }
+
+    .work-card:hover { box-shadow: 0 4px 20px rgba(44,36,32,0.14); transform: translateY(-2px); }
+
+    .work-card-photo {
+      width: 100%; aspect-ratio: 1 / 1;
+      object-fit: cover; display: block;
+      background: var(--accent-light);
+    }
+
+    .work-card-photo-placeholder {
+      width: 100%; aspect-ratio: 1 / 1;
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--accent);
+    }
+
+    .work-card-body {
+      padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+
+    .work-card-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+
+    .work-card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px 12px;
+      gap: 6px;
+    }
+
+    /* Detail modal */
+    .work-detail-meta {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
+      margin-bottom: 18px;
+    }
+
+    .work-meta-item { font-size: 0.82rem; }
+    .work-meta-label { color: var(--text-muted); margin-bottom: 2px; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .work-meta-value { color: var(--text); font-weight: 500; }
+    .work-meta-item.full { grid-column: 1 / -1; }
+
+    .detail-photos {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+    }
+
+    .detail-photo-thumb {
+      width: 80px; height: 80px;
+      object-fit: cover; border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer; transition: opacity 0.15s;
+    }
+
+    .detail-photo-thumb:hover { opacity: 0.85; }
+
+    .detail-actions {
+      display: flex; gap: 8px; padding-top: 16px;
+      border-top: 1px solid var(--border); margin-top: 4px;
+    }
+
+    /* Photos */
+    .work-photos {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px;
+    }
+
+    .work-photo-thumb {
+      width: 64px; height: 64px;
+      object-fit: cover; border-radius: 7px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .work-photo-thumb:hover { opacity: 0.85; transform: scale(1.04); }
+
+    /* Upload area in modal */
+    .photo-upload-area {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 18px; text-align: center;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+
+    .photo-upload-area:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); }
+
+    .photo-upload-area input[type=file] { display: none; }
+
+    .photo-previews {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+
+    .photo-preview-wrap {
+      position: relative; width: 72px; height: 72px;
+    }
+
+    .photo-preview-wrap img {
+      width: 72px; height: 72px;
+      object-fit: cover; border-radius: 7px;
+      border: 1px solid var(--border);
+    }
+
+    .photo-remove-btn {
+      position: absolute; top: -6px; right: -6px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #c0392b; color: #fff; border: none;
+      font-size: 10px; line-height: 18px; text-align: center;
+      cursor: pointer; font-weight: 700; padding: 0;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 90vw; max-height: 88vh;
+      border-radius: 10px; object-fit: contain;
+      box-shadow: 0 8px 60px rgba(0,0,0,0.6);
+    }
+
+    .lightbox-close {
+      position: fixed; top: 20px; right: 24px;
+      background: none; border: none; color: #fff;
+      font-size: 2rem; cursor: pointer; line-height: 1;
+      opacity: 0.8; transition: opacity 0.15s;
+    }
+
+    .lightbox-close:hover { opacity: 1; }
+
+    .lightbox-nav {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.15); border: none; color: #fff;
+      font-size: 1.8rem; cursor: pointer; padding: 10px 16px;
+      border-radius: 8px; transition: background 0.15s;
+    }
+
+    .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
+    .lightbox-nav.prev { left: 16px; }
+    .lightbox-nav.next { right: 16px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(44,36,32,0.35); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface); border-radius: 14px;
+      padding: 28px; width: 100%; max-width: 520px;
+      margin: 16px; box-shadow: 0 8px 40px rgba(44,36,32,0.18);
+      max-height: 92vh; overflow-y: auto;
+    }
+
+    .modal h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 22px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.9rem; color: var(--text);
+      background: var(--bg); outline: none;
+      transition: border-color 0.15s; font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--accent); background: #fff; }
+
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+    .bought-hint {
+      font-size: 0.82rem; color: var(--text-muted);
+      margin-bottom: 18px; padding: 10px 14px;
+      background: var(--accent-light); border-radius: 8px; line-height: 1.5;
+    }
+
+    .section-divider {
+      font-size: 0.72rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin: 4px 0 10px; grid-column: 1 / -1;
+      border-bottom: 1px solid var(--border); padding-bottom: 6px;
+    }
+
+    /* Glaze rows */
+    .glaze-row {
+      display: grid; grid-template-columns: 1fr 80px 28px; gap: 8px;
+      align-items: center; margin-bottom: 8px;
+    }
+
+    .glaze-row input {
+      padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.875rem; color: var(--text);
+      background: var(--bg); outline: none;
+      transition: border-color 0.15s; font-family: inherit; width: 100%;
+    }
+
+    .glaze-row input:focus { border-color: var(--accent); background: #fff; }
+
+    .glaze-row .remove-glaze {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 1rem;
+      padding: 2px; border-radius: 6px;
+      transition: color 0.15s;
+    }
+
+    .glaze-row .remove-glaze:hover { color: #c0392b; }
+
+    .btn-add-glaze {
+      background: none; border: 1px dashed var(--border);
+      color: var(--text-muted); padding: 7px 14px;
+      border-radius: 8px; font-size: 0.8rem;
+      cursor: pointer; margin-top: 4px;
+      transition: border-color 0.15s, color 0.15s;
+      width: 100%;
+    }
+
+    .btn-add-glaze:hover { border-color: var(--accent); color: var(--accent); }
+
+    @media (max-width: 600px) {
+      header { padding: 16px; }
+      nav.top-nav { padding: 0 16px; }
+      main { padding: 20px 16px; }
+      .form-row { grid-template-columns: 1fr; }
+      .entries-table thead, .shopping-table thead { display: none; }
+      .entries-table td, .shopping-table td { display: block; padding: 6px 14px; }
+      .entries-table td:first-child, .shopping-table td:first-child { padding-top: 12px; }
+      .entries-table td:last-child, .shopping-table td:last-child { padding-bottom: 12px; }
+      .entries-table tr, .shopping-table tr { border-bottom: 1px solid var(--border); }
+      .works-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"></div>
+  <h1>Ceramika <span>— pracownia</span></h1>
+</header>
+
+<nav class="top-nav">
+  <button class="active" data-page="zakupy" onclick="showPage('zakupy', this)">Zakupy</button>
+  <button data-page="dziela" onclick="showPage('dziela', this)">Moje dzieła</button>
+</nav>
+
+<main>
+
+  <!-- ===== ZAKUPY ===== -->
+  <div id="page-zakupy" class="page active">
+    <div class="subtabs">
+      <button class="active" id="subtab-btn-wydatki" onclick="showSubtab('wydatki')">Wydatki</button>
+      <button id="subtab-btn-lista" onclick="showSubtab('lista')">Do kupienia</button>
+    </div>
+
+    <!-- WYDATKI -->
+    <div id="subtab-wydatki" class="subtab-content active">
+      <div class="section-header">
+        <h2>Wydatki</h2>
+        <button class="btn" onclick="openExpenseModal()">+ Dodaj wydatek</button>
+      </div>
+      <div class="filters">
+        <label>Rok:</label>
+        <select id="filter-year" onchange="renderExpenses()">
+          <option value="all">Wszystkie</option>
+        </select>
+        <label>Miesiąc:</label>
+        <select id="filter-month" onchange="renderExpenses()">
+          <option value="all">Wszystkie</option>
+          <option value="0">Styczeń</option><option value="1">Luty</option>
+          <option value="2">Marzec</option><option value="3">Kwiecień</option>
+          <option value="4">Maj</option><option value="5">Czerwiec</option>
+          <option value="6">Lipiec</option><option value="7">Sierpień</option>
+          <option value="8">Wrzesień</option><option value="9">Październik</option>
+          <option value="10">Listopad</option><option value="11">Grudzień</option>
+        </select>
+        <label>Kategoria:</label>
+        <select id="filter-cat" onchange="renderExpenses()">
+          <option value="all">Wszystkie</option>
+          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Narzędzia</option><option>Piece i sprzęt</option>
+          <option>Materiały eksploatacyjne</option><option>Inne</option>
+        </select>
+      </div>
+      <div class="summary-cards" id="summary-cards"></div>
+      <div id="entries-list"></div>
+    </div>
+
+    <!-- DO KUPIENIA -->
+    <div id="subtab-lista" class="subtab-content">
+      <div class="section-header">
+        <h2>Do kupienia</h2>
+        <button class="btn" onclick="openWishModal()">+ Dodaj pozycję</button>
+      </div>
+      <div id="wish-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== MOJE DZIEŁA ===== -->
+  <div id="page-dziela" class="page">
+    <div class="section-header">
+      <h2>Moje dzieła</h2>
+      <button class="btn" onclick="openWorkModal()">+ Dodaj dzieło</button>
+    </div>
+
+    <div class="filters">
+      <label>Status:</label>
+      <select id="w-filter-status" onchange="renderWorks()">
+        <option value="all">Wszystkie</option>
+        <option value="not_started">Not started</option>
+        <option value="thrown">Thrown</option>
+        <option value="shaped">Shaped</option>
+        <option value="glazed">Glazed</option>
+        <option value="ready">Ready</option>
+      </select>
+      <label>Typ:</label>
+      <select id="w-filter-type" onchange="renderWorks()">
+        <option value="all">Wszystkie</option>
+      </select>
+      <label>Dla kogo:</label>
+      <select id="w-filter-for" onchange="renderWorks()">
+        <option value="all">Wszystkie</option>
+      </select>
+    </div>
+
+    <div class="summary-cards" id="works-summary"></div>
+    <div id="works-list"></div>
+  </div>
+
+</main>
+
+<!-- MODAL: wydatek -->
+<div class="modal-overlay" id="modal-expense" onclick="closeModalOutside(event,'modal-expense')">
+  <div class="modal">
+    <h3 id="expense-modal-title">Nowy wydatek</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="f-date" />
+      </div>
+      <div class="form-group">
+        <label>Kategoria *</label>
+        <select id="f-cat">
+          <option value="">— wybierz —</option>
+          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Narzędzia</option><option>Piece i sprzęt</option>
+          <option>Materiały eksploatacyjne</option><option>Inne</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Nazwa *</label>
+        <input type="text" id="f-name" placeholder="np. Glina szamotowa 5kg" />
+      </div>
+      <div class="form-group">
+        <label>Ilość *</label>
+        <input type="number" id="f-qty" min="0.01" step="0.01" placeholder="1" oninput="calcExpenseTotal()" />
+      </div>
+      <div class="form-group">
+        <label>Cena jedn. (PLN)</label>
+        <input type="number" id="f-unit-price" min="0" step="0.01" placeholder="0,00" oninput="calcExpenseTotal()" />
+      </div>
+      <div class="form-group full">
+        <label>Suma (PLN) *</label>
+        <input type="number" id="f-amount" min="0.01" step="0.01" placeholder="0,00" oninput="calcExpenseUnitPrice()" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-expense')">Anuluj</button>
+      <button class="btn" onclick="saveExpense()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: do kupienia -->
+<div class="modal-overlay" id="modal-wish" onclick="closeModalOutside(event,'modal-wish')">
+  <div class="modal">
+    <h3 id="wish-modal-title">Nowa pozycja</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Kategoria *</label>
+        <select id="w-cat">
+          <option value="">— wybierz —</option>
+          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Narzędzia</option><option>Piece i sprzęt</option>
+          <option>Materiały eksploatacyjne</option><option>Inne</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ilość</label>
+        <input type="number" id="w-qty" min="0.01" step="0.01" placeholder="1" />
+      </div>
+      <div class="form-group full">
+        <label>Nazwa *</label>
+        <input type="text" id="w-name" placeholder="np. Glazura celadon 500g" />
+      </div>
+      <div class="form-group full">
+        <label>Notatka</label>
+        <textarea id="w-note" placeholder="Link, sklep, uwagi..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-wish')">Anuluj</button>
+      <button class="btn" onclick="saveWish()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: oznacz jako kupione -->
+<div class="modal-overlay" id="modal-bought" onclick="closeModalOutside(event,'modal-bought')">
+  <div class="modal">
+    <h3>Oznacz jako kupione</h3>
+    <div class="bought-hint" id="bought-hint"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data zakupu *</label>
+        <input type="date" id="b-date" />
+      </div>
+      <div class="form-group">
+        <label>Kwota (PLN) *</label>
+        <input type="number" id="b-amount" min="0.01" step="0.01" placeholder="0,00" />
+      </div>
+      <div class="form-group">
+        <label>Ilość *</label>
+        <input type="number" id="b-qty" min="0.01" step="0.01" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bought')">Anuluj</button>
+      <button class="btn btn-green" onclick="confirmBought()">Przenieś do wydatków</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: dzieło -->
+<div class="modal-overlay" id="modal-work" onclick="closeModalOutside(event,'modal-work')">
+  <div class="modal">
+    <h3 id="work-modal-title">Nowe dzieło</h3>
+    <div class="form-row">
+
+      <div class="section-divider">Podstawowe informacje</div>
+
+      <div class="form-group full">
+        <label>Nazwa *</label>
+        <input type="text" id="d-name" placeholder="np. Kubek z uchem" />
+      </div>
+      <div class="form-group">
+        <label>Typ</label>
+        <input type="text" id="d-type" placeholder="np. Kubek, Miska, Wazon" list="type-suggestions" />
+        <datalist id="type-suggestions">
+          <option>Kubek</option><option>Miska</option><option>Talerz</option>
+          <option>Wazon</option><option>Dzbanek</option><option>Doniczka</option>
+          <option>Figurka</option><option>Inne</option>
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label>Ilość</label>
+        <input type="number" id="d-qty" min="1" step="1" placeholder="1" />
+      </div>
+      <div class="form-group">
+        <label>Dla kogo</label>
+        <input type="text" id="d-for" placeholder="np. dla siebie, mama, zamówienie" />
+      </div>
+      <div class="form-group">
+        <label>Waga (g)</label>
+        <input type="number" id="d-weight" min="0" step="1" placeholder="np. 350" />
+      </div>
+
+      <div class="section-divider">Materiały</div>
+
+      <div class="form-group full">
+        <label>Glina</label>
+        <input type="text" id="d-clay" placeholder="np. Glina szamotowa B-mix" />
+      </div>
+      <div class="form-group full">
+        <label>Szkliwa</label>
+        <div id="d-glazes-list"></div>
+        <button type="button" class="btn-add-glaze" onclick="addGlazeRow()">+ Dodaj szkliwo</button>
+      </div>
+
+      <div class="section-divider">Notatki</div>
+
+      <div class="form-group full">
+        <textarea id="d-notes" placeholder="Metody, techniki szkliwienia, obserwacje..." style="min-height:90px"></textarea>
+      </div>
+
+      <div class="section-divider">Status i daty</div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select id="d-status">
+          <option value="not_started">Not started</option>
+          <option value="thrown">Thrown</option>
+          <option value="shaped">Shaped</option>
+          <option value="glazed">Glazed</option>
+          <option value="ready">Ready</option>
+        </select>
+      </div>
+      <div class="form-group"></div>
+      <div class="form-group">
+        <label>Data rozpoczęcia</label>
+        <input type="date" id="d-start" />
+      </div>
+      <div class="form-group">
+        <label>Data zakończenia</label>
+        <input type="date" id="d-end" />
+      </div>
+
+      <div class="section-divider">Zdjęcia</div>
+
+      <div class="form-group full">
+        <div class="photo-upload-area" onclick="document.getElementById('d-photos-input').click()">
+          <input type="file" id="d-photos-input" accept="image/*" multiple onchange="handlePhotoUpload(event)" />
+          📷 Kliknij, żeby dodać zdjęcia
+        </div>
+        <div class="photo-previews" id="d-photo-previews"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-work')">Anuluj</button>
+      <button class="btn" onclick="saveWork()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: szczegóły dzieła -->
+<div class="modal-overlay" id="modal-work-detail" onclick="closeModalOutside(event,'modal-work-detail')">
+  <div class="modal" style="max-width:560px">
+    <div id="detail-content"></div>
+    <div class="detail-actions">
+      <button class="btn" onclick="editFromDetail()">✎ Edytuj</button>
+      <button class="btn-ghost btn" onclick="closeModal('modal-work-detail')">Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightboxBtn()">✕</button>
+  <button class="lightbox-nav prev" onclick="lightboxNav(-1)">‹</button>
+  <img id="lightbox-img" src="" alt="" />
+  <button class="lightbox-nav next" onclick="lightboxNav(1)">›</button>
+</div>
+
+<script>
+  const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+                  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+  const STATUS_LABEL = {
+    not_started: 'Not started',
+    thrown: 'Thrown',
+    shaped: 'Shaped',
+    glazed: 'Glazed',
+    ready: 'Ready'
+  };
+
+  let expenses  = JSON.parse(localStorage.getItem('ceramic_expenses')  || '[]');
+  let wishlist  = JSON.parse(localStorage.getItem('ceramic_wishlist')  || '[]');
+  let works     = JSON.parse(localStorage.getItem('ceramic_works')     || '[]');
+
+  let editingExpenseId = null;
+  let editingWishId    = null;
+  let buyingWishId     = null;
+  let editingWorkId    = null;
+  let pendingPhotos    = []; // base64 strings being staged in modal
+  let pendingGlazes   = [];
+
+  let lightboxPhotos = [];
+  let lightboxIndex  = 0;
+
+  function saveExpenses() { localStorage.setItem('ceramic_expenses', JSON.stringify(expenses)); }
+  function saveWishlist()  { localStorage.setItem('ceramic_wishlist', JSON.stringify(wishlist)); }
+  function saveWorks()     { localStorage.setItem('ceramic_works',    JSON.stringify(works)); }
+
+  function fmt(n) {
+    return Number(n).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł';
+  }
+
+  function fmtDate(str) {
+    if (!str) return '—';
+    return new Date(str).toLocaleDateString('pl-PL');
+  }
+
+  // ---- NAVIGATION ----
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav.top-nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    btn.classList.add('active');
+    if (id === 'dziela') renderWorks();
+  }
+
+  function showSubtab(id) {
+    document.querySelectorAll('.subtab-content').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('subtab-' + id).classList.add('active');
+    document.getElementById('subtab-btn-' + id).classList.add('active');
+    if (id === 'wydatki') renderExpenses();
+    if (id === 'lista')   renderWishlist();
+  }
+
+  // ---- MODALS ----
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    editingExpenseId = editingWishId = buyingWishId = editingWorkId = null;
+  }
+
+  function closeModalOutside(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+
+  // ---- EXPENSES ----
+
+  function openExpenseModal(id) {
+    editingExpenseId = id || null;
+    document.getElementById('expense-modal-title').textContent = id ? 'Edytuj wydatek' : 'Nowy wydatek';
+    if (id) {
+      const e = expenses.find(x => x.id === id);
+      document.getElementById('f-date').value       = e.date;
+      document.getElementById('f-cat').value        = e.category;
+      document.getElementById('f-name').value       = e.name;
+      document.getElementById('f-qty').value        = e.qty;
+      document.getElementById('f-unit-price').value = e.unitPrice || '';
+      document.getElementById('f-amount').value     = e.amount;
+    } else {
+      document.getElementById('f-date').value       = new Date().toISOString().slice(0,10);
+      document.getElementById('f-cat').value        = '';
+      document.getElementById('f-name').value       = '';
+      document.getElementById('f-qty').value        = '';
+      document.getElementById('f-unit-price').value = '';
+      document.getElementById('f-amount').value     = '';
+    }
+    document.getElementById('modal-expense').classList.add('open');
+    setTimeout(() => document.getElementById('f-name').focus(), 50);
+  }
+
+  function calcExpenseTotal() {
+    const qty   = parseFloat(document.getElementById('f-qty').value);
+    const price = parseFloat(document.getElementById('f-unit-price').value);
+    if (qty > 0 && price > 0) {
+      document.getElementById('f-amount').value = (qty * price).toFixed(2);
+    }
+  }
+
+  function calcExpenseUnitPrice() {
+    const qty    = parseFloat(document.getElementById('f-qty').value);
+    const amount = parseFloat(document.getElementById('f-amount').value);
+    if (qty > 0 && amount > 0) {
+      document.getElementById('f-unit-price').value = (amount / qty).toFixed(2);
+    }
+  }
+
+  function saveExpense() {
+    const date     = document.getElementById('f-date').value;
+    const category = document.getElementById('f-cat').value;
+    const name     = document.getElementById('f-name').value.trim();
+    const qty       = document.getElementById('f-qty').value;
+    const unitPrice = document.getElementById('f-unit-price').value;
+    const amount    = document.getElementById('f-amount').value;
+    if (!date || !category || !name || !qty || !amount) { alert('Wypełnij wszystkie pola.'); return; }
+    const entry = { date, category, name, qty: +qty, amount: +amount, unitPrice: unitPrice ? +unitPrice : null };
+    if (editingExpenseId) {
+      const idx = expenses.findIndex(x => x.id === editingExpenseId);
+      expenses[idx] = { ...expenses[idx], ...entry };
+    } else {
+      expenses.push({ id: Date.now().toString(), ...entry });
+    }
+    saveExpenses(); closeModal('modal-expense'); renderExpenses();
+  }
+
+  function deleteExpense(id) {
+    if (!confirm('Usunąć ten wpis?')) return;
+    expenses = expenses.filter(e => e.id !== id);
+    saveExpenses(); renderExpenses();
+  }
+
+  function getFilteredExpenses() {
+    const yr  = document.getElementById('filter-year').value;
+    const mo  = document.getElementById('filter-month').value;
+    const cat = document.getElementById('filter-cat').value;
+    return expenses.filter(e => {
+      const d = new Date(e.date);
+      if (yr  !== 'all' && d.getFullYear() !== +yr)  return false;
+      if (mo  !== 'all' && d.getMonth()    !== +mo)  return false;
+      if (cat !== 'all' && e.category      !== cat)  return false;
+      return true;
+    });
+  }
+
+  function updateYearFilter() {
+    const sel     = document.getElementById('filter-year');
+    const current = sel.value;
+    const years   = [...new Set(expenses.map(e => new Date(e.date).getFullYear()))].sort((a,b) => b-a);
+    sel.innerHTML = '<option value="all">Wszystkie</option>';
+    years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; sel.appendChild(o); });
+    if (years.includes(+current)) sel.value = current;
+  }
+
+  function renderExpenses() {
+    updateYearFilter();
+    const filtered = getFilteredExpenses();
+    renderSummary(filtered);
+    renderExpenseList(filtered);
+  }
+
+  function renderSummary(filtered) {
+    const total  = filtered.reduce((s,e) => s + +e.amount, 0);
+    const byCat  = {};
+    filtered.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + +e.amount; });
+    const topCat = Object.entries(byCat).sort((a,b) => b[1]-a[1])[0];
+    const yr = document.getElementById('filter-year').value;
+    const mo = document.getElementById('filter-month').value;
+    let period = 'łącznie';
+    if (yr!=='all' && mo!=='all') period = MONTHS[+mo]+' '+yr;
+    else if (yr!=='all') period = yr;
+    else if (mo!=='all') period = MONTHS[+mo];
+    document.getElementById('summary-cards').innerHTML = `
+      <div class="card"><div class="card-label">Suma wydatków</div><div class="card-value">${fmt(total)}</div><div class="card-sub">${period}</div></div>
+      <div class="card"><div class="card-label">Liczba pozycji</div><div class="card-value">${filtered.length}</div><div class="card-sub">wpisów</div></div>
+      ${topCat?`<div class="card"><div class="card-label">Największy wydatek</div><div class="card-value" style="font-size:1.1rem">${topCat[0]}</div><div class="card-sub">${fmt(topCat[1])}</div></div>`:''}
+    `;
+  }
+
+  function renderExpenseList(filtered) {
+    const container = document.getElementById('entries-list');
+    if (!filtered.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🏺</div><p>Brak wydatków dla wybranych filtrów.<br>Kliknij <strong>+ Dodaj wydatek</strong>, żeby dodać pierwszy wpis.</p></div>`;
+      return;
+    }
+    const groups = {};
+    filtered.forEach(e => {
+      const d = new Date(e.date);
+      const key = d.getFullYear()+'-'+String(d.getMonth()).padStart(2,'0');
+      if (!groups[key]) groups[key] = { year: d.getFullYear(), month: d.getMonth(), items: [] };
+      groups[key].items.push(e);
+    });
+    container.innerHTML = Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(key => {
+      const g = groups[key];
+      const total = g.items.reduce((s,e)=>s + +e.amount,0);
+      return `
+        <div class="month-group">
+          <div class="month-group-header"><h3>${MONTHS[g.month]} ${g.year}</h3><span class="month-total">${fmt(total)}</span></div>
+          <table class="entries-table">
+            <thead><tr><th>Data</th><th>Nazwa</th><th>Kategoria</th><th>Ilość</th><th>Cena jedn.</th><th>Suma</th><th></th></tr></thead>
+            <tbody>
+              ${[...g.items].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>`
+                <tr>
+                  <td>${new Date(e.date).toLocaleDateString('pl-PL')}</td>
+                  <td>${e.name}</td>
+                  <td><span class="tag">${e.category}</span></td>
+                  <td>${e.qty}</td>
+                  <td class="amount">${e.unitPrice ? fmt(e.unitPrice) : '—'}</td>
+                  <td class="amount">${fmt(e.amount)}</td>
+                  <td><div class="actions-cell">
+                    <button class="edit-btn" onclick="openExpenseModal('${e.id}')" title="Edytuj">✎</button>
+                    <button class="delete-btn" onclick="deleteExpense('${e.id}')" title="Usuń">✕</button>
+                  </div></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }).join('');
+  }
+
+  // ---- WISHLIST ----
+
+  function openWishModal(id) {
+    editingWishId = id || null;
+    document.getElementById('wish-modal-title').textContent = id ? 'Edytuj pozycję' : 'Nowa pozycja';
+    if (id) {
+      const w = wishlist.find(x=>x.id===id);
+      document.getElementById('w-cat').value  = w.category;
+      document.getElementById('w-name').value = w.name;
+      document.getElementById('w-qty').value  = w.qty||'';
+      document.getElementById('w-note').value = w.note||'';
+    } else {
+      document.getElementById('w-cat').value  = '';
+      document.getElementById('w-name').value = '';
+      document.getElementById('w-qty').value  = '';
+      document.getElementById('w-note').value = '';
+    }
+    document.getElementById('modal-wish').classList.add('open');
+    setTimeout(()=>document.getElementById('w-name').focus(),50);
+  }
+
+  function saveWish() {
+    const category = document.getElementById('w-cat').value;
+    const name     = document.getElementById('w-name').value.trim();
+    const qty      = document.getElementById('w-qty').value;
+    const note     = document.getElementById('w-note').value.trim();
+    if (!category||!name) { alert('Wypełnij kategorię i nazwę.'); return; }
+    if (editingWishId) {
+      const idx = wishlist.findIndex(x=>x.id===editingWishId);
+      wishlist[idx] = { ...wishlist[idx], category, name, qty: qty?+qty:null, note };
+    } else {
+      wishlist.push({ id: Date.now().toString(), category, name, qty: qty?+qty:null, note });
+    }
+    saveWishlist(); closeModal('modal-wish'); renderWishlist();
+  }
+
+  function deleteWish(id) {
+    if (!confirm('Usunąć tę pozycję?')) return;
+    wishlist = wishlist.filter(w=>w.id!==id);
+    saveWishlist(); renderWishlist();
+  }
+
+  function openBoughtModal(id) {
+    buyingWishId = id;
+    const w = wishlist.find(x=>x.id===id);
+    document.getElementById('bought-hint').textContent = `„${w.name}" · ${w.category}${w.qty?' · ilość: '+w.qty:''}`;
+    document.getElementById('b-date').value   = new Date().toISOString().slice(0,10);
+    document.getElementById('b-amount').value = '';
+    document.getElementById('b-qty').value    = w.qty||1;
+    document.getElementById('modal-bought').classList.add('open');
+    setTimeout(()=>document.getElementById('b-amount').focus(),50);
+  }
+
+  function confirmBought() {
+    const date   = document.getElementById('b-date').value;
+    const amount = document.getElementById('b-amount').value;
+    const qty    = document.getElementById('b-qty').value;
+    if (!date||!amount||!qty) { alert('Wypełnij datę, kwotę i ilość.'); return; }
+    const w = wishlist.find(x=>x.id===buyingWishId);
+    expenses.push({ id: Date.now().toString(), date, category: w.category, name: w.name, qty: +qty, amount: +amount });
+    wishlist = wishlist.filter(x=>x.id!==buyingWishId);
+    saveExpenses(); saveWishlist();
+    closeModal('modal-bought');
+    showSubtab('wydatki');
+  }
+
+  function renderWishlist() {
+    const container = document.getElementById('wish-list');
+    if (!wishlist.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🛒</div><p>Lista jest pusta.<br>Kliknij <strong>+ Dodaj pozycję</strong>, żeby coś dodać.</p></div>`;
+      return;
+    }
+    const groups = {};
+    wishlist.forEach(w => { if (!groups[w.category]) groups[w.category]=[]; groups[w.category].push(w); });
+    container.innerHTML = Object.entries(groups).map(([cat,items])=>`
+      <div class="month-group">
+        <div class="month-group-header">
+          <h3>${cat}</h3>
+          <span class="month-total">${items.length} ${items.length===1?'pozycja':items.length<5?'pozycje':'pozycji'}</span>
+        </div>
+        <table class="shopping-table">
+          <thead><tr><th>Nazwa</th><th>Ilość</th><th>Notatka</th><th></th></tr></thead>
+          <tbody>
+            ${items.map(w=>`
+              <tr>
+                <td>${w.name}</td>
+                <td>${w.qty!=null?w.qty:'—'}</td>
+                <td class="note-col">${w.note||''}</td>
+                <td><div class="actions-cell">
+                  <button class="btn-green" onclick="openBoughtModal('${w.id}')">✓ Kupione</button>
+                  <button class="delete-btn" onclick="deleteWish('${w.id}')" title="Usuń">✕</button>
+                </div></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('');
+  }
+
+  // ---- PHOTOS ----
+
+  function compressImage(file, maxPx = 1200, quality = 0.82) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.round(img.width  * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhotoUpload(event) {
+    const files = Array.from(event.target.files);
+    for (const file of files) {
+      const b64 = await compressImage(file);
+      pendingPhotos.push(b64);
+    }
+    event.target.value = '';
+    renderPhotoPreviews();
+  }
+
+  function renderPhotoPreviews() {
+    const container = document.getElementById('d-photo-previews');
+    container.innerHTML = pendingPhotos.map((src, i) => `
+      <div class="photo-preview-wrap">
+        <img src="${src}" alt="zdjęcie ${i+1}" />
+        <button class="photo-remove-btn" onclick="removePhoto(${i})" title="Usuń">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function removePhoto(idx) {
+    pendingPhotos.splice(idx, 1);
+    renderPhotoPreviews();
+  }
+
+  function openLightboxForWork(workId, startIndex) {
+    const w = works.find(x => x.id === workId);
+    if (w && w.photos) openLightbox(w.photos, startIndex);
+  }
+
+  function openLightbox(photos, startIndex) {
+    lightboxPhotos = photos;
+    lightboxIndex  = startIndex;
+    document.getElementById('lightbox-img').src = lightboxPhotos[lightboxIndex];
+    document.getElementById('lightbox').classList.add('open');
+    document.getElementById('lightbox').querySelector('.prev').style.display = photos.length > 1 ? '' : 'none';
+    document.getElementById('lightbox').querySelector('.next').style.display = photos.length > 1 ? '' : 'none';
+  }
+
+  function closeLightboxBtn() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
+  function closeLightbox(e) {
+    if (e.target === document.getElementById('lightbox')) closeLightboxBtn();
+  }
+
+  function lightboxNav(dir) {
+    lightboxIndex = (lightboxIndex + dir + lightboxPhotos.length) % lightboxPhotos.length;
+    document.getElementById('lightbox-img').src = lightboxPhotos[lightboxIndex];
+  }
+
+  document.addEventListener('keydown', e => {
+    const lb = document.getElementById('lightbox');
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape')      closeLightboxBtn();
+    if (e.key === 'ArrowRight')  lightboxNav(1);
+    if (e.key === 'ArrowLeft')   lightboxNav(-1);
+  });
+
+  // ---- GLAZES ----
+
+  function addGlazeRow(name = '', layers = '') {
+    pendingGlazes.push({ name, layers });
+    renderGlazeRows();
+  }
+
+  function removeGlazeRow(idx) {
+    pendingGlazes.splice(idx, 1);
+    renderGlazeRows();
+  }
+
+  function renderGlazeRows() {
+    const container = document.getElementById('d-glazes-list');
+    if (!container) return;
+    container.innerHTML = pendingGlazes.map((g, i) => `
+      <div class="glaze-row">
+        <input type="text" placeholder="Nazwa szkliwa" value="${g.name.replace(/"/g,'&quot;')}"
+          oninput="pendingGlazes[${i}].name = this.value" />
+        <input type="number" placeholder="Warstwy" min="1" step="1" value="${g.layers}"
+          oninput="pendingGlazes[${i}].layers = this.value ? +this.value : ''" style="text-align:center" />
+        <button class="remove-glaze" onclick="removeGlazeRow(${i})" title="Usuń">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // ---- WORKS ----
+
+  function openWorkModal(id) {
+    editingWorkId = id || null;
+    document.getElementById('work-modal-title').textContent = id ? 'Edytuj dzieło' : 'Nowe dzieło';
+    if (id) {
+      const w = works.find(x=>x.id===id);
+      document.getElementById('d-name').value   = w.name;
+      document.getElementById('d-type').value   = w.type||'';
+      document.getElementById('d-qty').value    = w.qty||'';
+      document.getElementById('d-for').value    = w.forWhom||'';
+      document.getElementById('d-weight').value = w.weight||'';
+      document.getElementById('d-clay').value   = w.clay||'';
+      document.getElementById('d-notes').value  = w.notes||'';
+      document.getElementById('d-status').value = w.status||'not_started';
+      document.getElementById('d-start').value  = w.startDate||'';
+      document.getElementById('d-end').value    = w.endDate||'';
+      pendingPhotos  = w.photos  ? [...w.photos]  : [];
+      pendingGlazes  = w.glazes  ? w.glazes.map(g=>({...g})) : [];
+    } else {
+      ['d-name','d-type','d-for','d-clay','d-notes','d-start','d-end'].forEach(fid=>document.getElementById(fid).value='');
+      document.getElementById('d-qty').value    = 1;
+      document.getElementById('d-weight').value = '';
+      document.getElementById('d-status').value = 'not_started';
+      document.getElementById('d-start').value  = new Date().toISOString().slice(0,10);
+      pendingPhotos = [];
+      pendingGlazes = [];
+    }
+    renderPhotoPreviews();
+    renderGlazeRows();
+    document.getElementById('modal-work').classList.add('open');
+    setTimeout(()=>document.getElementById('d-name').focus(),50);
+  }
+
+  function saveWork() {
+    const name = document.getElementById('d-name').value.trim();
+    if (!name) { alert('Podaj nazwę dzieła.'); return; }
+    const work = {
+      id:          editingWorkId || Date.now().toString(),
+      name,
+      type:        document.getElementById('d-type').value.trim(),
+      qty:         +document.getElementById('d-qty').value || 1,
+      forWhom:     document.getElementById('d-for').value.trim(),
+      weight:      document.getElementById('d-weight').value ? +document.getElementById('d-weight').value : null,
+      clay:    document.getElementById('d-clay').value.trim(),
+      glazes:  pendingGlazes.filter(g => g.name.trim()),
+      notes:   document.getElementById('d-notes').value.trim(),
+      status:  document.getElementById('d-status').value,
+      startDate:   document.getElementById('d-start').value,
+      endDate:     document.getElementById('d-end').value,
+      photos:      [...pendingPhotos],
+    };
+    if (editingWorkId) {
+      const idx = works.findIndex(x=>x.id===editingWorkId);
+      works[idx] = work;
+    } else {
+      works.push(work);
+    }
+    pendingPhotos = [];
+    pendingGlazes = [];
+    saveWorks(); closeModal('modal-work'); renderWorks();
+  }
+
+  let detailWorkId = null;
+
+  function openWorkDetail(id) {
+    detailWorkId = id;
+    const w = works.find(x => x.id === id);
+    const gl = w.glazes;
+    const glazeStr = !gl || !gl.length ? '' :
+      typeof gl === 'string' ? gl :
+      gl.map(g => g.name + (g.layers ? ` (${g.layers} ${+g.layers===1?'warstwa':+g.layers<5?'warstwy':'warstw'})` : '')).join(', ');
+
+    document.getElementById('detail-content').innerHTML = `
+      <h3 style="margin-bottom:6px">${w.name}</h3>
+      ${w.type ? `<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:18px">${w.type}${w.qty>1?' · '+w.qty+' szt.':''}</div>` : '<div style="margin-bottom:18px"></div>'}
+
+      ${w.photos && w.photos.length ? `
+      <div class="detail-photos">
+        ${w.photos.map((src,i) => `<img class="detail-photo-thumb" src="${src}" onclick="openLightboxForWork('${w.id}',${i})" />`).join('')}
+      </div>` : ''}
+
+      <div class="work-detail-meta">
+        ${w.clay    ? `<div class="work-meta-item"><div class="work-meta-label">Glina</div><div class="work-meta-value">${w.clay}</div></div>` : ''}
+        ${glazeStr  ? `<div class="work-meta-item full"><div class="work-meta-label">Szkliwa</div><div class="work-meta-value">${glazeStr}</div></div>` : ''}
+        ${w.weight  ? `<div class="work-meta-item"><div class="work-meta-label">Waga</div><div class="work-meta-value">${w.weight} g</div></div>` : ''}
+        ${w.forWhom ? `<div class="work-meta-item"><div class="work-meta-label">Dla kogo</div><div class="work-meta-value">${w.forWhom}</div></div>` : ''}
+        ${w.startDate||w.endDate ? `<div class="work-meta-item full"><div class="work-meta-label">Daty</div><div class="work-meta-value">${fmtDate(w.startDate)}${w.endDate?' → '+fmtDate(w.endDate):''}</div></div>` : ''}
+        <div class="work-meta-item"><div class="work-meta-label">Status</div><div class="work-meta-value"><span class="status-badge status-${w.status}">${STATUS_LABEL[w.status]}</span></div></div>
+        ${w.notes   ? `<div class="work-meta-item full"><div class="work-meta-label">Notatki</div><div class="work-meta-value" style="white-space:pre-wrap;font-weight:400">${w.notes}</div></div>` : ''}
+      </div>
+    `;
+    document.getElementById('modal-work-detail').classList.add('open');
+  }
+
+  function editFromDetail() {
+    closeModal('modal-work-detail');
+    openWorkModal(detailWorkId);
+  }
+
+  function deleteWork(id) {
+    if (!confirm('Usunąć to dzieło?')) return;
+    works = works.filter(w=>w.id!==id);
+    saveWorks(); renderWorks();
+  }
+
+  function updateWorkFilters() {
+    const types = [...new Set(works.map(w=>w.type).filter(Boolean))].sort();
+    const fors  = [...new Set(works.map(w=>w.forWhom).filter(Boolean))].sort();
+
+    const tSel = document.getElementById('w-filter-type');
+    const cur  = tSel.value;
+    tSel.innerHTML = '<option value="all">Wszystkie</option>';
+    types.forEach(t=>{ const o=document.createElement('option'); o.value=o.textContent=t; tSel.appendChild(o); });
+    if (types.includes(cur)) tSel.value=cur;
+
+    const fSel = document.getElementById('w-filter-for');
+    const curf = fSel.value;
+    fSel.innerHTML = '<option value="all">Wszystkie</option>';
+    fors.forEach(f=>{ const o=document.createElement('option'); o.value=o.textContent=f; fSel.appendChild(o); });
+    if (fors.includes(curf)) fSel.value=curf;
+  }
+
+  function getFilteredWorks() {
+    const st  = document.getElementById('w-filter-status').value;
+    const ty  = document.getElementById('w-filter-type').value;
+    const fo  = document.getElementById('w-filter-for').value;
+    return works.filter(w => {
+      if (st!=='all' && w.status!==st) return false;
+      if (ty!=='all' && w.type!==ty)   return false;
+      if (fo!=='all' && w.forWhom!==fo) return false;
+      return true;
+    });
+  }
+
+  function renderWorks() {
+    updateWorkFilters();
+    const filtered = getFilteredWorks();
+
+    // Summary
+    const total  = filtered.length;
+    const ready  = filtered.filter(w=>w.status==='ready').length;
+    const inProg = filtered.filter(w=>w.status!=='ready'&&w.status!=='not_started').length;
+    document.getElementById('works-summary').innerHTML = `
+      <div class="card"><div class="card-label">Wszystkich dzieł</div><div class="card-value">${total}</div><div class="card-sub">w wybranym filtrze</div></div>
+      <div class="card"><div class="card-label">Gotowych</div><div class="card-value" style="color:#1E7B3A">${ready}</div><div class="card-sub">ready</div></div>
+      <div class="card"><div class="card-label">W trakcie</div><div class="card-value" style="color:#B06000">${inProg}</div><div class="card-sub">thrown / shaped / glazed</div></div>
+    `;
+
+    const container = document.getElementById('works-list');
+    if (!filtered.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🏺</div><p>Brak dzieł dla wybranych filtrów.<br>Kliknij <strong>+ Dodaj dzieło</strong>, żeby dodać pierwsze.</p></div>`;
+      return;
+    }
+
+    const sorted = [...filtered].sort((a,b) => {
+      const da = a.startDate||''; const db = b.startDate||'';
+      return db.localeCompare(da);
+    });
+
+    container.innerHTML = `<div class="works-grid">${sorted.map(w=>`
+      <div class="work-card" onclick="openWorkDetail('${w.id}')">
+        ${w.photos && w.photos.length
+          ? `<img class="work-card-photo" src="${w.photos[0]}" alt="${w.name}" />`
+          : `<div class="work-card-photo-placeholder">🏺</div>`}
+        <div class="work-card-body">
+          <div class="work-card-title">${w.name}</div>
+        </div>
+        <div class="work-card-footer">
+          <span class="status-badge status-${w.status}">${STATUS_LABEL[w.status]}</span>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+
+  // Init
+  renderExpenses();
+  renderWishlist();
+</script>
+</body>
+</html>
