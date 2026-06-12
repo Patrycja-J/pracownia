@@ -582,9 +582,9 @@
         <label>Kategoria:</label>
         <select id="filter-cat" onchange="renderExpenses()">
           <option value="all">Wszystkie</option>
-          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Glina</option><option>Szkliwa</option>
           <option>Narzędzia</option><option>Piece i sprzęt</option>
-          <option>Materiały eksploatacyjne</option><option>Inne</option>
+          <option>Wynajem</option><option>Wypał</option><option>Inne</option>
         </select>
       </div>
       <div class="summary-cards" id="summary-cards"></div>
@@ -647,9 +647,9 @@
         <label>Kategoria *</label>
         <select id="f-cat">
           <option value="">— wybierz —</option>
-          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Glina</option><option>Szkliwa</option>
           <option>Narzędzia</option><option>Piece i sprzęt</option>
-          <option>Materiały eksploatacyjne</option><option>Inne</option>
+          <option>Wynajem</option><option>Wypał</option><option>Inne</option>
         </select>
       </div>
       <div class="form-group full">
@@ -661,10 +661,14 @@
         <input type="number" id="f-qty" min="0.01" step="0.01" placeholder="1" oninput="calcExpenseTotal()" />
       </div>
       <div class="form-group">
+        <label>Waga (g)</label>
+        <input type="number" id="f-weight" min="0" step="1" placeholder="np. 500" />
+      </div>
+      <div class="form-group">
         <label>Cena jedn. (PLN)</label>
         <input type="number" id="f-unit-price" min="0" step="0.01" placeholder="0,00" oninput="calcExpenseTotal()" />
       </div>
-      <div class="form-group full">
+      <div class="form-group">
         <label>Suma (PLN) *</label>
         <input type="number" id="f-amount" min="0.01" step="0.01" placeholder="0,00" oninput="calcExpenseUnitPrice()" />
       </div>
@@ -685,9 +689,9 @@
         <label>Kategoria *</label>
         <select id="w-cat">
           <option value="">— wybierz —</option>
-          <option>Glina</option><option>Glazury i szkliwa</option>
+          <option>Glina</option><option>Szkliwa</option>
           <option>Narzędzia</option><option>Piece i sprzęt</option>
-          <option>Materiały eksploatacyjne</option><option>Inne</option>
+          <option>Wynajem</option><option>Wypał</option><option>Inne</option>
         </select>
       </div>
       <div class="form-group">
@@ -1025,6 +1029,7 @@
       document.getElementById('f-cat').value        = e.category;
       document.getElementById('f-name').value       = e.name;
       document.getElementById('f-qty').value        = e.qty;
+      document.getElementById('f-weight').value     = e.weight || '';
       document.getElementById('f-unit-price').value = e.unitPrice || '';
       document.getElementById('f-amount').value     = e.amount;
     } else {
@@ -1032,6 +1037,7 @@
       document.getElementById('f-cat').value        = '';
       document.getElementById('f-name').value       = '';
       document.getElementById('f-qty').value        = '';
+      document.getElementById('f-weight').value     = '';
       document.getElementById('f-unit-price').value = '';
       document.getElementById('f-amount').value     = '';
     }
@@ -1063,8 +1069,9 @@
     const unitPrice = document.getElementById('f-unit-price').value;
     const amount    = document.getElementById('f-amount').value;
     if (!date || !category || !name || !qty || !amount) { alert('Wypełnij wszystkie pola.'); return; }
-    const id    = editingExpenseId || Date.now().toString();
-    const entry = { id, date, category, name, qty: +qty, amount: +amount, unitPrice: unitPrice ? +unitPrice : null };
+    const weight = document.getElementById('f-weight').value;
+    const id     = editingExpenseId || Date.now().toString();
+    const entry  = { id, date, category, name, qty: +qty, amount: +amount, unitPrice: unitPrice ? +unitPrice : null, weight: weight ? +weight : null };
     await saveExpenseToDb(entry);
     closeModal('modal-expense');
   }
@@ -1104,20 +1111,21 @@
   }
 
   function renderSummary(filtered) {
-    const total  = filtered.reduce((s,e) => s + +e.amount, 0);
-    const byCat  = {};
-    filtered.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + +e.amount; });
-    const topCat = Object.entries(byCat).sort((a,b) => b[1]-a[1])[0];
-    const yr = document.getElementById('filter-year').value;
-    const mo = document.getElementById('filter-month').value;
-    let period = 'łącznie';
-    if (yr!=='all' && mo!=='all') period = MONTHS[+mo]+' '+yr;
-    else if (yr!=='all') period = yr;
-    else if (mo!=='all') period = MONTHS[+mo];
+    const now       = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear  = now.getFullYear();
+
+    const sumMonth = expenses
+      .filter(e => { const d = new Date(e.date); return d.getFullYear()===thisYear && d.getMonth()===thisMonth; })
+      .reduce((s,e) => s + +e.amount, 0);
+
+    const sumYear = expenses
+      .filter(e => new Date(e.date).getFullYear()===thisYear)
+      .reduce((s,e) => s + +e.amount, 0);
+
     document.getElementById('summary-cards').innerHTML = `
-      <div class="card"><div class="card-text"><div class="card-label">Suma wydatków</div><div class="card-value">${fmt(total)}</div><div class="card-sub">${period}</div></div></div>
-      <div class="card"><div class="card-text"><div class="card-label">Liczba pozycji</div><div class="card-value">${filtered.length}</div><div class="card-sub">wpisów</div></div></div>
-      ${topCat?`<div class="card"><div class="card-text"><div class="card-label">Największy wydatek</div><div class="card-value" style="font-size:0.95rem">${topCat[0]}</div><div class="card-sub">${fmt(topCat[1])}</div></div></div>`:''}
+      <div class="card"><div class="card-text"><div class="card-label">Ten miesiąc</div><div class="card-value">${fmt(sumMonth)}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Ten rok</div><div class="card-value">${fmt(sumYear)}</div></div></div>
     `;
   }
 
