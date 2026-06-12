@@ -152,12 +152,14 @@
 
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow);
+      border-radius: var(--radius); padding: 10px 16px; box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 12px;
     }
 
-    .card .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .card .card-value { font-size: 1.4rem; font-weight: 600; color: var(--accent); }
-    .card .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .card .card-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .card .card-value { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+    .card .card-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .card .card-text { display: flex; flex-direction: column; gap: 1px; }
 
     /* Month groups */
     .month-group { margin-bottom: 28px; }
@@ -1113,9 +1115,9 @@
     else if (yr!=='all') period = yr;
     else if (mo!=='all') period = MONTHS[+mo];
     document.getElementById('summary-cards').innerHTML = `
-      <div class="card"><div class="card-label">Suma wydatków</div><div class="card-value">${fmt(total)}</div><div class="card-sub">${period}</div></div>
-      <div class="card"><div class="card-label">Liczba pozycji</div><div class="card-value">${filtered.length}</div><div class="card-sub">wpisów</div></div>
-      ${topCat?`<div class="card"><div class="card-label">Największy wydatek</div><div class="card-value" style="font-size:1.1rem">${topCat[0]}</div><div class="card-sub">${fmt(topCat[1])}</div></div>`:''}
+      <div class="card"><div class="card-text"><div class="card-label">Suma wydatków</div><div class="card-value">${fmt(total)}</div><div class="card-sub">${period}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Liczba pozycji</div><div class="card-value">${filtered.length}</div><div class="card-sub">wpisów</div></div></div>
+      ${topCat?`<div class="card"><div class="card-text"><div class="card-label">Największy wydatek</div><div class="card-value" style="font-size:0.95rem">${topCat[0]}</div><div class="card-sub">${fmt(topCat[1])}</div></div></div>`:''}
     `;
   }
 
@@ -1498,10 +1500,12 @@
     const total  = filtered.length;
     const ready  = filtered.filter(w=>w.status==='ready').length;
     const inProg = filtered.filter(w=>w.status!=='ready'&&w.status!=='not_started').length;
+    const planned = filtered.filter(w=>w.status==='not_started').length;
     document.getElementById('works-summary').innerHTML = `
-      <div class="card"><div class="card-label">Wszystkich dzieł</div><div class="card-value">${total}</div><div class="card-sub">w wybranym filtrze</div></div>
-      <div class="card"><div class="card-label">Gotowych</div><div class="card-value" style="color:#1E7B3A">${ready}</div><div class="card-sub">ready</div></div>
-      <div class="card"><div class="card-label">W trakcie</div><div class="card-value" style="color:#B06000">${inProg}</div><div class="card-sub">thrown / shaped / glazed</div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Wszystkich</div><div class="card-value">${total}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Planned</div><div class="card-value" style="color:#7A6A60">${planned}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">W trakcie</div><div class="card-value" style="color:#B06000">${inProg}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Gotowych</div><div class="card-value" style="color:#1E7B3A">${ready}</div></div></div>
     `;
 
     const container = document.getElementById('works-list');
