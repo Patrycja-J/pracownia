@@ -248,51 +248,51 @@
     .status-glazed       { background: #EDE7F6; color: #5E35B1; }
     .status-ready        { background: #E6F4EA; color: #1E7B3A; }
 
-    /* Works grid / cards */
-    .works-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 14px;
-    }
-
-    .work-card {
+    /* Works table */
+    .works-table {
+      width: 100%; border-collapse: collapse;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .works-table thead th {
+      text-align: left; padding: 10px 14px;
+      font-size: 0.75rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      background: #FDFCFB;
+    }
+
+    .works-table tbody tr {
+      border-bottom: 1px solid var(--border);
       cursor: pointer;
-      transition: box-shadow 0.15s, transform 0.15s;
-      display: flex; flex-direction: column;
+      transition: background 0.1s;
     }
 
-    .work-card:hover { box-shadow: 0 4px 20px rgba(44,36,32,0.14); transform: translateY(-2px); }
+    .works-table tbody tr:last-child { border-bottom: none; }
+    .works-table tbody tr:hover { background: var(--bg); }
 
-    .work-card-photo {
-      width: 100%; aspect-ratio: 1 / 1;
-      object-fit: cover; display: block;
-      background: var(--accent-light);
+    .works-table td {
+      padding: 11px 14px; font-size: 0.875rem; vertical-align: middle;
     }
 
-    .work-card-photo-placeholder {
-      width: 100%; aspect-ratio: 1 / 1;
-      background: var(--accent-light);
+    .work-thumb {
+      width: 40px; height: 40px;
+      object-fit: cover; border-radius: 6px;
+      border: 1px solid var(--border); display: block;
+    }
+
+    .work-thumb-placeholder {
+      width: 40px; height: 40px;
+      border-radius: 6px; background: var(--accent-light);
       display: flex; align-items: center; justify-content: center;
-      font-size: 2.5rem; color: var(--accent);
+      font-size: 1.1rem;
     }
 
-    .work-card-body {
-      padding: 12px 14px;
-      display: flex; flex-direction: column; gap: 6px;
-    }
-
-    .work-card-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
-
-    .work-card-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 14px 12px;
-      gap: 6px;
-    }
+    .work-name-cell { font-weight: 600; }
+    .work-type-cell { color: var(--text-muted); font-size: 0.82rem; }
 
     /* Detail modal */
     .work-detail-meta {
@@ -508,7 +508,11 @@
       .entries-table td:first-child, .shopping-table td:first-child { padding-top: 12px; }
       .entries-table td:last-child, .shopping-table td:last-child { padding-bottom: 12px; }
       .entries-table tr, .shopping-table tr { border-bottom: 1px solid var(--border); }
-      .works-grid { grid-template-columns: repeat(2, 1fr); }
+      .works-table thead { display: none; }
+      .works-table td { display: block; padding: 5px 14px; }
+      .works-table td:first-child { padding-top: 12px; }
+      .works-table td:last-child { padding-bottom: 12px; }
+      .works-table tr { border-bottom: 1px solid var(--border); }
     }
   </style>
 </head>
@@ -520,14 +524,14 @@
 </header>
 
 <nav class="top-nav">
-  <button class="active" data-page="zakupy" onclick="showPage('zakupy', this)">Zakupy</button>
-  <button data-page="dziela" onclick="showPage('dziela', this)">Moje dzieła</button>
+  <button class="active" data-page="dziela" onclick="showPage('dziela', this)">Produkty</button>
+  <button data-page="zakupy" onclick="showPage('zakupy', this)">Zakupy</button>
 </nav>
 
 <main>
 
   <!-- ===== ZAKUPY ===== -->
-  <div id="page-zakupy" class="page active">
+  <div id="page-zakupy" class="page">
     <div class="subtabs">
       <button class="active" id="subtab-btn-wydatki" onclick="showSubtab('wydatki')">Wydatki</button>
       <button id="subtab-btn-lista" onclick="showSubtab('lista')">Do kupienia</button>
@@ -577,7 +581,7 @@
   </div>
 
   <!-- ===== MOJE DZIEŁA ===== -->
-  <div id="page-dziela" class="page">
+  <div id="page-dziela" class="page active">
     <div class="section-header">
       <h2>Moje dzieła</h2>
       <button class="btn" onclick="openWorkModal()">+ Dodaj dzieło</button>
@@ -587,7 +591,7 @@
       <label>Status:</label>
       <select id="w-filter-status" onchange="renderWorks()">
         <option value="all">Wszystkie</option>
-        <option value="not_started">Not started</option>
+        <option value="not_started">Planned</option>
         <option value="thrown">Thrown</option>
         <option value="shaped">Shaped</option>
         <option value="glazed">Glazed</option>
@@ -768,7 +772,7 @@
       <div class="form-group">
         <label>Status</label>
         <select id="d-status">
-          <option value="not_started">Not started</option>
+          <option value="not_started">Planned</option>
           <option value="thrown">Thrown</option>
           <option value="shaped">Shaped</option>
           <option value="glazed">Glazed</option>
@@ -826,7 +830,7 @@
                   'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 
   const STATUS_LABEL = {
-    not_started: 'Not started',
+    not_started: 'Planned',
     thrown: 'Thrown',
     shaped: 'Shaped',
     glazed: 'Glazed',
@@ -1408,21 +1412,34 @@
       return db.localeCompare(da);
     });
 
-    container.innerHTML = `<div class="works-grid">${sorted.map(w=>`
-      <div class="work-card" onclick="openWorkDetail('${w.id}')">
-        ${w.photos && w.photos.length
-          ? `<img class="work-card-photo" src="${w.photos[0]}" alt="${w.name}" />`
-          : `<div class="work-card-photo-placeholder">🏺</div>`}
-        <div class="work-card-body">
-          <div class="work-card-title">${w.name}</div>
-        </div>
-        <div class="work-card-footer">
-          <span class="status-badge status-${w.status}">${STATUS_LABEL[w.status]}</span>
-        </div>
-      </div>`).join('')}</div>`;
+    container.innerHTML = `<table class="works-table">
+      <thead>
+        <tr>
+          <th style="width:52px"></th>
+          <th>Nazwa</th>
+          <th>Typ</th>
+          <th>Dla kogo</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(w=>`
+        <tr onclick="openWorkDetail('${w.id}')">
+          <td>${w.photos && w.photos.length
+            ? `<img class="work-thumb" src="${w.photos[0]}" alt="${w.name}" />`
+            : `<div class="work-thumb-placeholder">🏺</div>`}
+          </td>
+          <td class="work-name-cell">${w.name}</td>
+          <td class="work-type-cell">${w.type||'—'}</td>
+          <td>${w.forWhom||'—'}</td>
+          <td><span class="status-badge status-${w.status}">${STATUS_LABEL[w.status]}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
   }
 
   // Init
+  renderWorks();
   renderExpenses();
   renderWishlist();
 </script>
