@@ -518,9 +518,28 @@
 </head>
 <body>
 
+<!-- EKRAN LOGOWANIA -->
+<div id="login-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:var(--bg)">
+  <div style="text-align:center;padding:40px">
+    <div style="width:56px;height:56px;background:var(--accent);border-radius:50%;margin:0 auto 20px"></div>
+    <h1 style="font-size:1.4rem;font-weight:600;margin-bottom:8px">Ceramika — pracownia</h1>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:28px">Zaloguj się, żeby uzyskać dostęp</p>
+    <button onclick="loginWithGoogle()" style="background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:1rem;font-weight:500;cursor:pointer">
+      Zaloguj przez Google
+    </button>
+  </div>
+</div>
+
+<!-- APLIKACJA -->
+<div id="app-shell" style="display:none">
+
 <header>
   <div class="logo"></div>
   <h1>Ceramika <span>— pracownia</span></h1>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+    <span id="user-email" style="font-size:0.8rem;color:var(--text-muted)"></span>
+    <button onclick="logout()" style="background:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;color:var(--text-muted)">Wyloguj</button>
+  </div>
 </header>
 
 <nav class="top-nav">
@@ -825,7 +844,105 @@
   <button class="lightbox-nav next" onclick="lightboxNav(1)">›</button>
 </div>
 
-<script>
+</div><!-- /app-shell -->
+
+<script type="module">
+  import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+                                                        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy }
+                                                        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAGOor4jttxdO9FuLwjUY01YU-PqL_lW0w",
+    authDomain: "pracownia-b57a7.firebaseapp.com",
+    projectId: "pracownia-b57a7",
+    storageBucket: "pracownia-b57a7.firebasestorage.app",
+    messagingSenderId: "934032484335",
+    appId: "1:934032484335:web:71f97aa02bd7c01ac9f81a"
+  };
+
+  const app      = initializeApp(firebaseConfig);
+  const auth     = getAuth(app);
+  const db       = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  let uid = null;
+  let unsubscribers = [];
+
+  // ---- AUTH ----
+
+  function col(name) { return collection(db, 'users', uid, name); }
+  function docRef(name, id) { return doc(db, 'users', uid, name, id); }
+
+  window.loginWithGoogle = async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch(e) { console.error(e); }
+  };
+
+  window.logout = async () => {
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+    await signOut(auth);
+  };
+
+  onAuthStateChanged(auth, user => {
+    document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
+    document.getElementById('app-shell').style.display    = user ? 'block' : 'none';
+    if (user) {
+      uid = user.uid;
+      document.getElementById('user-email').textContent = user.displayName || user.email;
+      startListeners();
+    } else {
+      uid = null;
+      expenses = []; wishlist = []; works = [];
+    }
+  });
+
+  function startListeners() {
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+
+    unsubscribers.push(onSnapshot(col('expenses'), snap => {
+      expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderExpenses();
+    }));
+
+    unsubscribers.push(onSnapshot(col('wishlist'), snap => {
+      wishlist = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderWishlist();
+    }));
+
+    unsubscribers.push(onSnapshot(col('works'), snap => {
+      works = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderWorks();
+    }));
+  }
+
+  async function saveExpenseToDb(entry) {
+    await setDoc(docRef('expenses', entry.id), entry);
+  }
+
+  async function deleteExpenseFromDb(id) {
+    await deleteDoc(docRef('expenses', id));
+  }
+
+  async function saveWishToDb(item) {
+    await setDoc(docRef('wishlist', item.id), item);
+  }
+
+  async function deleteWishFromDb(id) {
+    await deleteDoc(docRef('wishlist', id));
+  }
+
+  async function saveWorkToDb(work) {
+    await setDoc(docRef('works', work.id), work);
+  }
+
+  async function deleteWorkFromDb(id) {
+    await deleteDoc(docRef('works', id));
+  }
+
   const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
                   'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 
@@ -837,9 +954,9 @@
     ready: 'Ready'
   };
 
-  let expenses  = JSON.parse(localStorage.getItem('ceramic_expenses')  || '[]');
-  let wishlist  = JSON.parse(localStorage.getItem('ceramic_wishlist')  || '[]');
-  let works     = JSON.parse(localStorage.getItem('ceramic_works')     || '[]');
+  let expenses  = [];
+  let wishlist  = [];
+  let works     = [];
 
   let editingExpenseId = null;
   let editingWishId    = null;
@@ -851,9 +968,10 @@
   let lightboxPhotos = [];
   let lightboxIndex  = 0;
 
-  function saveExpenses() { localStorage.setItem('ceramic_expenses', JSON.stringify(expenses)); }
-  function saveWishlist()  { localStorage.setItem('ceramic_wishlist', JSON.stringify(wishlist)); }
-  function saveWorks()     { localStorage.setItem('ceramic_works',    JSON.stringify(works)); }
+  // legacy stubs — zastąpione przez Firestore
+  function saveExpenses() {}
+  function saveWishlist()  {}
+  function saveWorks()     {}
 
   function fmt(n) {
     return Number(n).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł';
@@ -935,7 +1053,7 @@
     }
   }
 
-  function saveExpense() {
+  async function saveExpense() {
     const date     = document.getElementById('f-date').value;
     const category = document.getElementById('f-cat').value;
     const name     = document.getElementById('f-name').value.trim();
@@ -943,20 +1061,15 @@
     const unitPrice = document.getElementById('f-unit-price').value;
     const amount    = document.getElementById('f-amount').value;
     if (!date || !category || !name || !qty || !amount) { alert('Wypełnij wszystkie pola.'); return; }
-    const entry = { date, category, name, qty: +qty, amount: +amount, unitPrice: unitPrice ? +unitPrice : null };
-    if (editingExpenseId) {
-      const idx = expenses.findIndex(x => x.id === editingExpenseId);
-      expenses[idx] = { ...expenses[idx], ...entry };
-    } else {
-      expenses.push({ id: Date.now().toString(), ...entry });
-    }
-    saveExpenses(); closeModal('modal-expense'); renderExpenses();
+    const id    = editingExpenseId || Date.now().toString();
+    const entry = { id, date, category, name, qty: +qty, amount: +amount, unitPrice: unitPrice ? +unitPrice : null };
+    await saveExpenseToDb(entry);
+    closeModal('modal-expense');
   }
 
-  function deleteExpense(id) {
+  async function deleteExpense(id) {
     if (!confirm('Usunąć ten wpis?')) return;
-    expenses = expenses.filter(e => e.id !== id);
-    saveExpenses(); renderExpenses();
+    await deleteExpenseFromDb(id);
   }
 
   function getFilteredExpenses() {
@@ -1068,25 +1181,21 @@
     setTimeout(()=>document.getElementById('w-name').focus(),50);
   }
 
-  function saveWish() {
+  async function saveWish() {
     const category = document.getElementById('w-cat').value;
     const name     = document.getElementById('w-name').value.trim();
     const qty      = document.getElementById('w-qty').value;
     const note     = document.getElementById('w-note').value.trim();
     if (!category||!name) { alert('Wypełnij kategorię i nazwę.'); return; }
-    if (editingWishId) {
-      const idx = wishlist.findIndex(x=>x.id===editingWishId);
-      wishlist[idx] = { ...wishlist[idx], category, name, qty: qty?+qty:null, note };
-    } else {
-      wishlist.push({ id: Date.now().toString(), category, name, qty: qty?+qty:null, note });
-    }
-    saveWishlist(); closeModal('modal-wish'); renderWishlist();
+    const id   = editingWishId || Date.now().toString();
+    const item = { id, category, name, qty: qty?+qty:null, note };
+    await saveWishToDb(item);
+    closeModal('modal-wish');
   }
 
-  function deleteWish(id) {
+  async function deleteWish(id) {
     if (!confirm('Usunąć tę pozycję?')) return;
-    wishlist = wishlist.filter(w=>w.id!==id);
-    saveWishlist(); renderWishlist();
+    await deleteWishFromDb(id);
   }
 
   function openBoughtModal(id) {
@@ -1100,15 +1209,15 @@
     setTimeout(()=>document.getElementById('b-amount').focus(),50);
   }
 
-  function confirmBought() {
+  async function confirmBought() {
     const date   = document.getElementById('b-date').value;
     const amount = document.getElementById('b-amount').value;
     const qty    = document.getElementById('b-qty').value;
     if (!date||!amount||!qty) { alert('Wypełnij datę, kwotę i ilość.'); return; }
     const w = wishlist.find(x=>x.id===buyingWishId);
-    expenses.push({ id: Date.now().toString(), date, category: w.category, name: w.name, qty: +qty, amount: +amount });
-    wishlist = wishlist.filter(x=>x.id!==buyingWishId);
-    saveExpenses(); saveWishlist();
+    const id = Date.now().toString();
+    await saveExpenseToDb({ id, date, category: w.category, name: w.name, qty: +qty, amount: +amount, unitPrice: null });
+    await deleteWishFromDb(w.id);
     closeModal('modal-bought');
     showSubtab('wydatki');
   }
@@ -1286,33 +1395,28 @@
     setTimeout(()=>document.getElementById('d-name').focus(),50);
   }
 
-  function saveWork() {
+  async function saveWork() {
     const name = document.getElementById('d-name').value.trim();
     if (!name) { alert('Podaj nazwę dzieła.'); return; }
     const work = {
-      id:          editingWorkId || Date.now().toString(),
+      id:        editingWorkId || Date.now().toString(),
       name,
-      type:        document.getElementById('d-type').value.trim(),
-      qty:         +document.getElementById('d-qty').value || 1,
-      forWhom:     document.getElementById('d-for').value.trim(),
-      weight:      document.getElementById('d-weight').value ? +document.getElementById('d-weight').value : null,
-      clay:    document.getElementById('d-clay').value.trim(),
-      glazes:  pendingGlazes.filter(g => g.name.trim()),
-      notes:   document.getElementById('d-notes').value.trim(),
-      status:  document.getElementById('d-status').value,
-      startDate:   document.getElementById('d-start').value,
-      endDate:     document.getElementById('d-end').value,
-      photos:      [...pendingPhotos],
+      type:      document.getElementById('d-type').value.trim(),
+      qty:       +document.getElementById('d-qty').value || 1,
+      forWhom:   document.getElementById('d-for').value.trim(),
+      weight:    document.getElementById('d-weight').value ? +document.getElementById('d-weight').value : null,
+      clay:      document.getElementById('d-clay').value.trim(),
+      glazes:    pendingGlazes.filter(g => g.name.trim()),
+      notes:     document.getElementById('d-notes').value.trim(),
+      status:    document.getElementById('d-status').value,
+      startDate: document.getElementById('d-start').value,
+      endDate:   document.getElementById('d-end').value,
+      photos:    [...pendingPhotos],
     };
-    if (editingWorkId) {
-      const idx = works.findIndex(x=>x.id===editingWorkId);
-      works[idx] = work;
-    } else {
-      works.push(work);
-    }
     pendingPhotos = [];
     pendingGlazes = [];
-    saveWorks(); closeModal('modal-work'); renderWorks();
+    await saveWorkToDb(work);
+    closeModal('modal-work');
   }
 
   let detailWorkId = null;
@@ -1352,10 +1456,9 @@
     openWorkModal(detailWorkId);
   }
 
-  function deleteWork(id) {
+  async function deleteWork(id) {
     if (!confirm('Usunąć to dzieło?')) return;
-    works = works.filter(w=>w.id!==id);
-    saveWorks(); renderWorks();
+    await deleteWorkFromDb(id);
   }
 
   function updateWorkFilters() {
@@ -1438,10 +1541,38 @@
     </table>`;
   }
 
-  // Init
-  renderWorks();
-  renderExpenses();
-  renderWishlist();
+  // Init — dane ładowane przez onSnapshot po zalogowaniu
+  // Udostępnij funkcje globalnie (potrzebne przez onclick w HTML)
+  window.openExpenseModal  = openExpenseModal;
+  window.saveExpense       = saveExpense;
+  window.deleteExpense     = deleteExpense;
+  window.openWishModal     = openWishModal;
+  window.saveWish          = saveWish;
+  window.deleteWish        = deleteWish;
+  window.openBoughtModal   = openBoughtModal;
+  window.confirmBought     = confirmBought;
+  window.openWorkModal     = openWorkModal;
+  window.saveWork          = saveWork;
+  window.deleteWork        = deleteWork;
+  window.openWorkDetail    = openWorkDetail;
+  window.editFromDetail    = editFromDetail;
+  window.showPage          = showPage;
+  window.showSubtab        = showSubtab;
+  window.closeModal        = closeModal;
+  window.closeModalOutside = closeModalOutside;
+  window.addGlazeRow       = addGlazeRow;
+  window.removeGlazeRow    = removeGlazeRow;
+  window.calcExpenseTotal      = calcExpenseTotal;
+  window.calcExpenseUnitPrice  = calcExpenseUnitPrice;
+  window.handlePhotoUpload     = handlePhotoUpload;
+  window.removePhoto           = removePhoto;
+  window.openLightboxForWork   = openLightboxForWork;
+  window.closeLightboxBtn      = closeLightboxBtn;
+  window.closeLightbox         = closeLightbox;
+  window.lightboxNav           = lightboxNav;
+  window.renderWorks           = renderWorks;
+  window.renderExpenses        = renderExpenses;
+  window.renderWishlist        = renderWishlist;
 </script>
 </body>
 </html>
