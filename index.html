@@ -661,8 +661,8 @@
         <input type="number" id="f-qty" min="0.01" step="0.01" placeholder="1" oninput="calcExpenseTotal()" />
       </div>
       <div class="form-group">
-        <label>Waga (g)</label>
-        <input type="number" id="f-weight" min="0" step="1" placeholder="np. 500" />
+        <label>Waga (kg/ml)</label>
+        <input type="number" id="f-weight" min="0" step="0.01" placeholder="np. 0.5" />
       </div>
       <div class="form-group">
         <label>Cena jedn. (PLN)</label>
@@ -1076,6 +1076,12 @@
     closeModal('modal-expense');
   }
 
+  async function duplicateExpense(id) {
+    const e = expenses.find(x => x.id === id);
+    const copy = { ...e, id: Date.now().toString(), date: new Date().toISOString().slice(0,10) };
+    await saveExpenseToDb(copy);
+  }
+
   async function deleteExpense(id) {
     if (!confirm('Usunąć ten wpis?')) return;
     await deleteExpenseFromDb(id);
@@ -1161,6 +1167,7 @@
                   <td class="amount">${fmt(e.amount)}</td>
                   <td><div class="actions-cell">
                     <button class="edit-btn" onclick="openExpenseModal('${e.id}')" title="Edytuj">✎</button>
+                    <button class="edit-btn" onclick="duplicateExpense('${e.id}')" title="Duplikuj">⧉</button>
                     <button class="delete-btn" onclick="deleteExpense('${e.id}')" title="Usuń">✕</button>
                   </div></td>
                 </tr>`).join('')}
@@ -1558,6 +1565,7 @@
   window.openExpenseModal  = openExpenseModal;
   window.saveExpense       = saveExpense;
   window.deleteExpense     = deleteExpense;
+  window.duplicateExpense  = duplicateExpense;
   window.openWishModal     = openWishModal;
   window.saveWish          = saveWish;
   window.deleteWish        = deleteWish;
