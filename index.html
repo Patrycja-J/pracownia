@@ -1155,15 +1155,16 @@
         <div class="month-group">
           <div class="month-group-header"><h3>${MONTHS[g.month]} ${g.year}</h3><span class="month-total">${fmt(total)}</span></div>
           <table class="entries-table">
-            <thead><tr><th>Data</th><th>Nazwa</th><th>Kategoria</th><th>Ilość</th><th>Cena jedn.</th><th>Suma</th><th></th></tr></thead>
+            <thead><tr><th>Kategoria</th><th>Nazwa</th><th>Data</th><th>Cena jedn.</th><th>Waga</th><th>Ilość</th><th>Suma</th><th></th></tr></thead>
             <tbody>
               ${[...g.items].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>`
                 <tr>
-                  <td>${new Date(e.date).toLocaleDateString('pl-PL')}</td>
-                  <td>${e.name}</td>
                   <td><span class="tag">${e.category}</span></td>
-                  <td>${e.qty}</td>
+                  <td>${e.name}</td>
+                  <td>${new Date(e.date).toLocaleDateString('pl-PL')}</td>
                   <td class="amount">${e.unitPrice ? fmt(e.unitPrice) : '—'}</td>
+                  <td>${e.weight ? e.weight : '—'}</td>
+                  <td>${e.qty}</td>
                   <td class="amount">${fmt(e.amount)}</td>
                   <td><div class="actions-cell">
                     <button class="edit-btn" onclick="openExpenseModal('${e.id}')" title="Edytuj">✎</button>
