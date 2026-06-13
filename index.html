@@ -915,6 +915,7 @@
       uid = user.uid;
       document.getElementById('user-email').textContent = user.displayName || user.email;
       startListeners();
+      restoreLastPage();
     } else {
       uid = null;
       expenses = []; wishlist = []; works = [];
@@ -1012,6 +1013,7 @@
     document.getElementById('page-' + id).classList.add('active');
     btn.classList.add('active');
     if (id === 'dziela') renderWorks();
+    localStorage.setItem('activePage', id);
   }
 
   function showSubtab(id) {
@@ -1021,6 +1023,19 @@
     document.getElementById('subtab-btn-' + id).classList.add('active');
     if (id === 'wydatki') renderExpenses();
     if (id === 'lista')   renderWishlist();
+    localStorage.setItem('activeSubtab', id);
+  }
+
+  function restoreLastPage() {
+    const page    = localStorage.getItem('activePage');
+    const subtab  = localStorage.getItem('activeSubtab');
+    if (page && page !== 'dziela') {
+      const btn = document.querySelector(`nav.top-nav button[data-page="${page}"]`);
+      if (btn) showPage(page, btn);
+    }
+    if (subtab && subtab !== 'wydatki') {
+      showSubtab(subtab);
+    }
   }
 
   // ---- MODALS ----
