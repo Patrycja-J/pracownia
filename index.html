@@ -1560,7 +1560,7 @@
     const planned = filtered.filter(w=>w.status==='not_started').length;
     document.getElementById('works-summary').innerHTML = `
       <div class="card"><div class="card-text"><div class="card-label">Wszystkich</div><div class="card-value">${total}</div></div></div>
-      <div class="card"><div class="card-text"><div class="card-label">Planned</div><div class="card-value" style="color:#7A6A60">${planned}</div></div></div>
+      <div class="card"><div class="card-text"><div class="card-label">Planowane</div><div class="card-value" style="color:#7A6A60">${planned}</div></div></div>
       <div class="card"><div class="card-text"><div class="card-label">W trakcie</div><div class="card-value" style="color:#B06000">${inProg}</div></div></div>
       <div class="card"><div class="card-text"><div class="card-label">Gotowych</div><div class="card-value" style="color:#1E7B3A">${ready}</div></div></div>
     `;
